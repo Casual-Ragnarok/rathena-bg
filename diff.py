@@ -44,6 +44,6 @@ def adjust_diff_file(input_path, output_path):
         file.writelines(adjusted_lines)
 
 # Example usage
-input_diff_path = 'PathExtendedBattleground3.0.diff'
+input_diff_path = 'ExtendedBattleground3.0.diff'
 output_diff_path = 'ebg.diff'
 adjust_diff_file(input_diff_path, output_diff_path)
