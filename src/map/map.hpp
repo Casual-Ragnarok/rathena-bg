@@ -665,6 +665,13 @@ enum e_mapflag : int16 {
 	MF_NOPETCAPTURE,
 	MF_NOBUYINGSTORE,
 	MF_NODYNAMICNPC,
+
+	// [BattleGround System] [Easycore]
+	MF_NOECALL, 
+	MF_BG_CONSUME, // allows using BG consumables [Easycore]
+	MF_WOE_CONSUME, // allows using WoE consumables [Easycore]
+	MF_BG_TOPSCORE,
+	MF_BG_NOMOBMOVE,
 	MF_MAX
 };
 

@@ -9620,6 +9620,10 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		{
 			sbg_id = bg_team_get_id(s_bl);
 			tbg_id = bg_team_get_id(t_bl);
+
+			// Extended Battleground [Easycore]
+			if (flag&(BCT_PARTY) && sbg_id == tbg_id)
+				state |= BCT_PARTY;
 		}
 		if( flag&(BCT_PARTY|BCT_ENEMY) )
 		{

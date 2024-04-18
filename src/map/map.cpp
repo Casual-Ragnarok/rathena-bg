@@ -127,7 +127,7 @@ static struct block_list *bl_list[BL_LIST_MAX];
 static int bl_list_count = 0;
 
 #ifndef MAP_MAX_MSG
-	#define MAP_MAX_MSG 1550
+	#define MAP_MAX_MSG 2050
 #endif
 
 struct map_data map[MAX_MAP_PER_SERVER];
@@ -1973,6 +1973,18 @@ void map_reqnickdb(map_session_data * sd, int charid)
 	map_session_data* tsd;
 
 	nullpo_retv(sd);
+
+	if (battle_config.bg_reserved_char_id && battle_config.bg_reserved_char_id == charid)
+	{
+		clif_solved_charname(sd->fd, charid, "Battleground");
+		return;
+	}
+ 
+	if (battle_config.woe_reserved_char_id && battle_config.woe_reserved_char_id == charid)
+	{
+		clif_solved_charname(sd->fd, charid, "WoE");
+		return;
+	}
 
 	tsd = map_charid2sd(charid);
 	if( tsd )

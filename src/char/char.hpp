@@ -280,10 +280,14 @@ std::unordered_map<uint32, std::shared_ptr<struct mmo_charstatus>>& char_get_cha
 extern int fame_list_size_chemist;
 extern int fame_list_size_smith;
 extern int fame_list_size_taekwon;
+extern int fame_list_size_bg;
+extern int fame_list_size_woe;
 // Char-server-side stored fame lists [DracoRPG]
 extern struct fame_list smith_fame_list[MAX_FAME_LIST];
 extern struct fame_list chemist_fame_list[MAX_FAME_LIST];
 extern struct fame_list taekwon_fame_list[MAX_FAME_LIST];
+extern struct fame_list bg_fame_list[MAX_FAME_LIST];
+extern struct fame_list woe_fame_list[MAX_FAME_LIST];
 
 #define DEFAULT_AUTOSAVE_INTERVAL 300*1000
 #define MAX_CHAR_BUF sizeof( struct CHARACTER_INFO ) //Max size (for WFIFOHEAD calls)

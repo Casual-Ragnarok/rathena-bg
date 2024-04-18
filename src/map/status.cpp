@@ -1551,6 +1551,10 @@ int status_damage(struct block_list *src,struct block_list *target,int64 dhp, in
 		case BL_ELEM: elemental_heal((TBL_ELEM*)target,hp,sp); break;
 	}
 
+	// Extended Features BG [Easycore]
+	if (src && src->type == BL_PC)
+		pc_record_damage(src,target,hp);
+
 	if( src && target->type == BL_PC && ((TBL_PC*)target)->disguise ) { // Stop walking when attacked in disguise to prevent walk-delay bug
 		unit_stop_walking( target, 1 );
 	}
