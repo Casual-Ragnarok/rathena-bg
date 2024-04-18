@@ -18626,6 +18626,9 @@ void clif_bg_queue_apply_result(e_bg_queue_apply_ack result, const char *name, m
 /// 0x8d9 <battleground name>.24B <queue number>.L (ZC_NOTIFY_ENTRY_QUEUE_APPLY)
 void clif_bg_queue_apply_notify(const char *name, map_session_data *sd)
 {
+	if (!battle_config.bg_queue_interface)
+		return;
+
 	nullpo_retv(sd);
 
 	std::shared_ptr<s_battleground_queue> queue = bg_search_queue(sd->bg_queue_id);
@@ -18639,7 +18642,10 @@ void clif_bg_queue_apply_notify(const char *name, map_session_data *sd)
 
 	WFIFOHEAD(fd, packet_len(0x8d9));
 	WFIFOW(fd,0) = 0x8d9;
-	safestrncpy(WFIFOCP(fd,2), name, NAME_LENGTH);
+	if (battle_config.bg_rotation_mode)
+		safestrncpy(WFIFOCP(fd,2), "Battleground Arena", NAME_LENGTH);
+	else
+		safestrncpy(WFIFOCP(fd,2), name, NAME_LENGTH);
 	WFIFOL(fd,2+NAME_LENGTH) = queue->teama_members.size() + queue->teamb_members.size();
 	WFIFOSET(fd, packet_len(0x8d9));
 }
@@ -18648,6 +18654,9 @@ void clif_bg_queue_apply_notify(const char *name, map_session_data *sd)
 /// 0x8db <result>.B <battleground name>.24B (ZC_ACK_ENTRY_QUEUE_CANCEL)
 void clif_bg_queue_cancel_result(bool success, const char *name, map_session_data *sd)
 {
+	if (!battle_config.bg_queue_interface)
+		return;
+
 	nullpo_retv(sd);
 
 	int fd = sd->fd;
@@ -18663,7 +18672,7 @@ void clif_bg_queue_cancel_result(bool success, const char *name, map_session_dat
 /// 0x8da <battleground name>.24B (CZ_REQ_ENTRY_QUEUE_CANCEL)
 void clif_parse_bg_queue_cancel_request(int fd, map_session_data *sd)
 {
-	if (!battle_config.feature_bgqueue)
+	if (!battle_config.feature_bgqueue || !battle_config.bg_queue_interface)
 		return;
 
 	nullpo_retv(sd);
@@ -18684,7 +18693,10 @@ void clif_parse_bg_queue_cancel_request(int fd, map_session_data *sd)
 
 	char name[NAME_LENGTH];
 
-	safestrncpy( name, RFIFOCP( fd, 2 ), NAME_LENGTH );
+	if (battle_config.bg_rotation_mode)
+		safestrncpy( name, "Battleground Arena", NAME_LENGTH );
+	else
+		safestrncpy( name, RFIFOCP( fd, 2 ), NAME_LENGTH );
 
 	clif_bg_queue_cancel_result(success, name, sd);
 }
@@ -18693,6 +18705,9 @@ void clif_parse_bg_queue_cancel_request(int fd, map_session_data *sd)
 /// 0x8df <battleground name>.24B <lobby name>.24B (ZC_NOTIFY_LOBBY_ADMISSION)
 void clif_bg_queue_lobby_notify(const char *name, map_session_data *sd)
 {
+	if (!battle_config.bg_queue_interface)
+		return;
+
 	nullpo_retv(sd);
 
 	int fd = sd->fd;
@@ -18727,6 +18742,9 @@ void clif_parse_bg_queue_lobby_reply(int fd, map_session_data *sd)
 /// 0x8e1 <result>.B <battleground name>.24B <lobby name>.24B (ZC_REPLY_ACK_LOBBY_ADMISSION)
 void clif_bg_queue_ack_lobby(bool result, const char *name, const char *lobbyname, map_session_data *sd)
 {
+	if (!battle_config.bg_queue_interface)
+		return;
+
 	nullpo_retv(sd);
 
 	int fd = sd->fd;
@@ -18743,11 +18761,17 @@ void clif_bg_queue_ack_lobby(bool result, const char *name, const char *lobbynam
 /// 0x90a <battleground name>.24B (CZ_REQ_ENTRY_QUEUE_RANKING)
 void clif_parse_bg_queue_request_queue_number(int fd, map_session_data *sd)
 {
+	if (!battle_config.bg_queue_interface)
+		return;
+
 	nullpo_retv(sd);
 
 	char name[NAME_LENGTH];
 
-	safestrncpy( name, RFIFOCP(fd, 2), NAME_LENGTH );
+	if (battle_config.bg_rotation_mode)
+		safestrncpy( name, "Battleground Arena", NAME_LENGTH );
+	else
+		safestrncpy( name, RFIFOCP(fd, 2), NAME_LENGTH );
 
 	clif_bg_queue_apply_notify(name, sd);
 }
@@ -18764,6 +18788,185 @@ void clif_bg_queue_entry_init(map_session_data *sd)
 	p.packetType = HEADER_ZC_ENTRY_QUEUE_INIT;
 
 	clif_send( &p, sizeof( p ), &sd->bl, SELF );
+}
+
+void clif_bg_memberlist(map_session_data *sd)
+{
+	map_session_data *psd;
+	int fd, c, i;
+	nullpo_retv(sd);
+
+#if PACKETVER < 20161026
+	int cmd = 0x154;
+	int size = 104;
+#else
+	int cmd = 0xaa5;
+	int size = 34;
+#endif
+
+	if((fd = sd->fd) == 0 )
+		return;
+	if(!sd->bg_id)
+		return;
+	std::shared_ptr<s_battleground_data> bg = util::umap_find(bg_team_db, sd->bg_id);
+	if (!bg)
+		return;
+
+	WFIFOHEAD(fd,bg->members.size() * 104 + 4);
+	WFIFOW(fd,0) = 0x154;
+	for( i = 0, c = 0; i < bg->members.size(); i++ )
+	{
+		if( (psd = bg->members[i].sd) == NULL )
+			continue;
+		WFIFOL(fd,c*104+ 4) = psd->status.account_id;
+		WFIFOL(fd,c*104+ 8) = psd->status.char_id;
+		WFIFOW(fd,c*104+12) = psd->status.hair;
+		WFIFOW(fd,c*104+14) = psd->status.hair_color;
+		WFIFOW(fd,c*104+16) = psd->status.sex;
+		WFIFOW(fd,c*104+18) = psd->status.class_;
+		WFIFOW(fd,c*104+20) = psd->status.base_level;
+		WFIFOL(fd,c*104+22) = 0; // Exp slot used to show kills
+		WFIFOL(fd,c*104+26) = 1; // Online
+		WFIFOL(fd,c*104+30) = psd->state.bmaster_flag ? 0 : 1; // Position
+		WFIFOL(fd,c*104+34)=(uint32)time(NULL);
+		memcpy(WFIFOP(fd,c*104+84),psd->status.name,NAME_LENGTH);
+		
+		c++;
+	}
+	WFIFOW(fd, 2)=c*104+4;
+	WFIFOSET(fd,WFIFOW(fd,2));
+}
+
+int clif_visual_guild_id(struct block_list *bl)
+{
+	int bg_id;
+	nullpo_ret(bl);
+	if ((bg_id = bg_team_get_id(bl)) == 0)
+		return status_get_guild_id(bl);
+
+	std::shared_ptr<s_battleground_data> bg = util::umap_find(bg_team_db, bg_id);
+
+	if (bg && bg->g)
+		return bg->g->guild_id;
+
+	return 0;
+}
+
+int clif_visual_emblem_id(struct block_list *bl)
+{
+	int bg_id;
+	nullpo_ret(bl);
+	if ((bg_id = bg_team_get_id(bl)) == 0)
+		return status_get_emblem_id(bl);
+
+	std::shared_ptr<s_battleground_data> bg = util::umap_find(bg_team_db, bg_id);
+
+	if (bg && bg->g)
+		return bg->g->emblem_id;
+
+	return 0;
+}
+
+/// Notifies the client that it is belonging to a guild (ZC_UPDATE_GDID).
+/// 016c <guild id>.L <emblem id>.L <mode>.L <ismaster>.B <inter sid>.L <guild name>.24B
+/// mode:
+///     &0x01 = allow invite
+///     &0x10 = allow expel
+void clif_bg_belonginfo(struct map_session_data *sd)
+{
+	struct guild *guild;
+
+	nullpo_retv(sd);
+
+	if ((guild = bg_guild_get(sd->bg_id)) == NULL)
+		return;
+
+	struct PACKET_ZC_UPDATE_GDID p = {};
+
+	p.PacketType = HEADER_ZC_UPDATE_GDID;
+	p.guildId = guild->guild_id;
+	p.emblemVersion = guild->emblem_id;
+	p.mode = 0;
+	p.isMaster = 0;
+	p.interSid = 0; // InterSID (unknown purpose)
+	safestrncpy( p.guildName, guild->name, sizeof( p.guildName ) );
+#if PACKETVER_MAIN_NUM >= 20220216
+	p.masterGID = guild->member[0].char_id;
+#endif
+
+	clif_send( &p, sizeof( p ), &sd->bl, SELF );
+}
+
+void clif_bg_emblem(struct map_session_data *sd, struct guild *g)
+{
+	int fd;
+
+	nullpo_retv(sd);
+	nullpo_retv(g);
+
+	if( g->emblem_len <= 0 )
+		return;
+
+	fd = sd->fd;
+	WFIFOHEAD(fd,g->emblem_len+12);
+	WFIFOW(fd,0)=0x152;
+	WFIFOW(fd,2)=g->emblem_len+12;
+	WFIFOL(fd,4)=g->guild_id;
+	WFIFOL(fd,8)=g->emblem_id;
+	memcpy(WFIFOP(fd,12),g->emblem_data,g->emblem_len);
+	WFIFOSET(fd,WFIFOW(fd,2));
+}
+
+void clif_bg_leave_single(struct map_session_data *sd, const char *name, const char *mes)
+{
+	int fd;
+	nullpo_retv(sd);
+
+	fd = sd->fd;
+	WFIFOHEAD(fd, 66);
+	WFIFOW(fd, 0) = 0x15a;
+	memcpy(WFIFOP(fd, 2), name, NAME_LENGTH);
+	memcpy(WFIFOP(fd, 26), mes, 40);
+	WFIFOSET(fd, 66);
+}
+
+void clif_bg_basicinfo(map_session_data& sd){
+	if (!sd.bg_id){
+		return;
+	}
+
+	struct guild *guild = bg_guild_get(sd.bg_id);
+	struct PACKET_ZC_GUILD_INFO p = {};
+
+	std::shared_ptr<s_battleground_data> bg = util::umap_find(bg_team_db, sd.bg_id);
+	if (!bg)
+		return;
+
+	p.PacketType = HEADER_ZC_GUILD_INFO;
+	p.GDID = guild->guild_id;
+	p.level = guild->guild_lv;
+	p.userNum = bg->members.size();
+	p.maxUserNum = guild->max_member;
+	p.userAverageLevel = guild->average_lv;
+	p.exp = (uint32)cap_value( guild->exp, 0, MAX_GUILD_EXP );
+	p.maxExp = (uint32)cap_value( guild->next_exp, 0, MAX_GUILD_EXP );
+	p.point = 0; // Tax Points
+	p.honor = 0; // Honor: (left) Vulgar [-100,100] Famed (right)
+	p.virtue = 0; // Virtue: (down) Wicked [-100,100] Righteous (up)
+	p.emblemVersion = guild->emblem_id;
+	safestrncpy( p.guildname, guild->name, sizeof( p.guildname ) );
+	safestrncpy( p.manageLand, msg_txt( &sd, 300), sizeof( p.manageLand ) );
+	p.zeny = 0;
+#if PACKETVER >= 20200902
+	p.masterGID = bg->leader_char_id; // leader
+	safestrncpy( p.masterName, guild->master, sizeof( p.masterName ) );
+#elif PACKETVER_MAIN_NUM >= 20161019 || PACKETVER_RE_NUM >= 20160921 || defined(PACKETVER_ZERO)
+	p.masterGID = bg->leader_char_id; // leader
+#else
+	safestrncpy( p.masterName, guild->master, sizeof( p.masterName ) );
+#endif
+
+	clif_send( &p, sizeof( p ), &sd.bl, SELF );
 }
 
 /// Custom Fonts (ZC_NOTIFY_FONT).
@@ -19829,6 +20032,45 @@ void clif_parse_SkillSelectMenu(int fd, map_session_data *sd) {
 		sd->state.workinprogress = WIP_DISABLE_NONE;
 		skill_autospell(sd, RFIFOW(fd, info->pos[1]));
 	} else if (sd->menuskill_id == SC_AUTOSHADOWSPELL) {
+
+		// Check Equip Extended [Easycore]
+		if (sd->state.check_equip_skill) {
+			int skill = RFIFOW(fd, info->pos[1]);
+			struct map_session_data *tsd = map_id2sd(sd->state.check_equip_skill);
+
+			sd->state.check_equip_skill = 0;
+			sd->state.workinprogress = WIP_DISABLE_NONE;
+			clif_menuskill_clear(sd);
+
+			if (!tsd) {
+				clif_displaymessage(fd, msg_txt(sd,2005)); //Player not found.
+				return;
+			}
+
+			if (!(skill >= CS_EQUIPMENT && skill <= CS_WOE))
+				return;
+
+			switch(skill) {
+				case CS_EQUIPMENT:
+					if (sd->bl.m != tsd->bl.m)
+						return;
+					else if( tsd->status.show_equip || pc_has_permission(sd, PC_PERM_VIEW_EQUIPMENT) )
+						clif_viewequip_ack(sd, tsd);
+					else
+						clif_msg(sd, VIEW_EQUIP_FAIL);
+					break;
+				case CS_BG:
+					pc_battle_stats(sd,tsd,1);
+					break;
+				case CS_WOE:
+					pc_battle_stats(sd,tsd,2);
+					break;
+				default:
+					return;
+			}	
+			return;
+		}
+
 		if (pc_istrading(sd)) {
 			clif_skill_fail(sd, sd->ud.skill_id, USESKILL_FAIL_LEVEL, 0);
 			clif_menuskill_clear(sd);
@@ -25277,6 +25519,28 @@ void clif_parse_partybooking_reply( int fd, map_session_data* sd ){
 
 	clif_partybooking_reply( tsd, sd, p->accept );
 #endif
+}
+
+
+void clif_rank_info(map_session_data *sd, int points, int total, e_rank ranktype)
+{
+	char message[100];
+
+	switch(ranktype) {
+		case RANK_BG:
+			if( points < 0 )
+				sprintf(message, msg_txt(sd, 2006), points, total); // [Your Battleground Rank -%d = %d points]
+			else
+				sprintf(message, msg_txt(sd, 2007), points, total); // [Your Battleground Rank +%d = %d points]
+			break;
+		case RANK_WOE:
+			if( points < 0 )
+				sprintf(message, msg_txt(sd, 2008), points, total); // [Your War of Emperium Rank -%d = %d points]
+			else
+				sprintf(message, msg_txt(sd, 2009), points, total); // [Your War of Emperium Rank +%d = %d points]
+			break;
+	}
+	clif_displaymessage(sd->fd, message);
 }
 
 /*==========================================
