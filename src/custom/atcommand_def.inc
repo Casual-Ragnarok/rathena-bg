@@ -9,3 +9,12 @@
  **/
 
 //ACMD_DEF(newcommand),
+
+ACMD_DEF(guildskill),
+ACMD_DEF(guildskillinfo),
+ACMD_DEF(leader),
+ACMD_DEF(reportafk),
+ACMD_DEF(order),
+ACMD_DEF(listenbg),
+ACMD_DEF(bgrank),
+ACMD_DEF(woerank),

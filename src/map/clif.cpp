@@ -1332,7 +1332,7 @@ static void clif_spawn_unit( struct block_list *bl, enum send_target target ){
 	p.robe = vd->robe;
 #endif
 	p.GUID = g_id;
--	p.GEmblemVer = status_get_emblem_id( bl );
+	p.GEmblemVer = clif_visual_emblem_id(bl);
 	p.honor = (sd) ? sd->status.manner : 0;
 	p.virtue = (sc) ? sc->opt3 : 0;
 	p.isPKModeON = (sd && sd->status.karma) ? 1 : 0;
