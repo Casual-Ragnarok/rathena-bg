@@ -10092,8 +10092,7 @@ void clif_name( struct block_list* src, struct block_list *bl, send_target targe
 			if( p && ( sd->guild || battle_config.display_party_name ) ){
 				safestrncpy( packet.party_name, p->party.name, NAME_LENGTH );
 			}
-
--			if( sd->guild ){
+			
 			// Extended Battleground [Easycore]
 			if (sd->bg_id)
 			{
