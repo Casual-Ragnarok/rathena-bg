@@ -10092,7 +10092,7 @@ void clif_name( struct block_list* src, struct block_list *bl, send_target targe
 			if( p && ( sd->guild || battle_config.display_party_name ) ){
 				safestrncpy( packet.party_name, p->party.name, NAME_LENGTH );
 			}
-			
+
 			// Extended Battleground [Easycore]
 			if (sd->bg_id)
 			{
@@ -13052,7 +13052,7 @@ void clif_parse_skill_toid( map_session_data* sd, uint16 skill_id, uint16 skill_
 	}
 	sd->skillitem = sd->skillitemlv = 0;
 
-	if( sd->state.gmaster_flag || skill_id == GD_CHARGESHOUT_BEATING )
+	if( SKILL_CHK_GUILD(skill_id) ) {
 		if (sd->bg_id && map_getmapflag(sd->bl.m, MF_BATTLEGROUND)) {
 			std::shared_ptr<s_battleground_data> bg = util::umap_find(bg_team_db, sd->bg_id);
 			int idx = skill_id - GD_SKILLBASE;
