@@ -12,7 +12,7 @@
 #include <common/socket.hpp>  // RBUF*
 #include <common/strlib.hpp>  // safestrncpy
 #include <common/timer.hpp>  // gettick
-#include <common/common/utils.hpp>
+#include <common/utils.hpp>
 
 #include "atcommand.hpp"  // msg_txt
 #include "battle.hpp"  // battle_config.*
