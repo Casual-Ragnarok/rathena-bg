@@ -11,8 +11,10 @@
 #include <common/random.hpp>
 #include <common/showmsg.hpp>
 #include <common/strlib.hpp>
+#include <common/socket.hpp>
 #include <common/timer.hpp>
 #include <common/utilities.hpp>
+#include <common/utils.hpp>
 
 #include "achievement.hpp"
 #include "battle.hpp"
