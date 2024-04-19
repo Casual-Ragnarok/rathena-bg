@@ -10349,6 +10349,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				else
 					guild_block_skill(sd,skill_get_time2(skill_id,skill_lv));
 #endif
+			}
 		}
 		break;
 	case GD_EMERGENCYCALL:
@@ -10405,6 +10406,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, ui
 				else
 					guild_block_skill(sd,skill_get_time2(skill_id,skill_lv));
 #endif
+			}
 		}
 		break;
 	case GD_CHARGESHOUT_FLAG:
