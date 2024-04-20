@@ -101,10 +101,24 @@ int chmapif_send(int fd, unsigned char *buf, unsigned int len){
  * @return : 0 success
  */
 int chmapif_send_fame_list(int fd){
-	int i, len = 8;
+	int i, len = 12;
 	unsigned char buf[32000];
 
 	WBUFW(buf,0) = 0x2b1b;
+
+	for( i = 0; i < fame_list_size_woe && woe_fame_list[i].id; i++ )
+	{
+		memcpy(WBUFP(buf,len),&woe_fame_list[i],sizeof(struct fame_list));
+		len += sizeof(struct fame_list);
+	}
+	WBUFW(buf, 10) = len;
+
+	for( i = 0; i < fame_list_size_bg && bg_fame_list[i].id; i++ )
+	{
+		memcpy(WBUFP(buf,len),&bg_fame_list[i],sizeof(struct fame_list));
+		len += sizeof(struct fame_list);
+	}
+	WBUFW(buf, 8) = len;
 
 	for(i = 0; i < fame_list_size_smith && smith_fame_list[i].id; i++) {
 		memcpy(WBUFP(buf, len), &smith_fame_list[i], sizeof(struct fame_list));
@@ -1129,6 +1143,8 @@ int chmapif_parse_updfamelist(int fd){
 				case RANK_BLACKSMITH:	size = fame_list_size_smith;	list = smith_fame_list;		break;
 				case RANK_ALCHEMIST:	size = fame_list_size_chemist;	list = chemist_fame_list;	break;
 				case RANK_TAEKWON:		size = fame_list_size_taekwon;	list = taekwon_fame_list;	break;
+				case RANK_BG:			size = fame_list_size_bg;		list = bg_fame_list;		break;
+				case RANK_WOE:			size = fame_list_size_woe;		list = woe_fame_list;		break;
 				default:				size = 0;						list = NULL;				break;
             }
 

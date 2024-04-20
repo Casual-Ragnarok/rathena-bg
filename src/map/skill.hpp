@@ -1499,6 +1499,11 @@ enum e_skill {
 	NPC_CURSE_OF_BLUE_CUBE,
 	NPC_KILLING_AURA,	// 783
 
+	//Extended Check Equipment [Easycore]
+	CS_EQUIPMENT = 792,
+	CS_BG,
+	CS_WOE,
+
 	KN_CHARGEATK = 1001,
 	CR_SHRINK,
 	AS_SONICACCEL,

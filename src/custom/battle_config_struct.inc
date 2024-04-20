@@ -12,3 +12,22 @@
  *	 <datatype> name;
  **/
 
+
+	int bg_rotation_mode;
+	int bg_idle_announce;
+	int bg_idle_autokick;
+	int bg_reportafk_leaderonly;
+	int bg_reward_rates;
+	int bg_reward_rates_vip;
+	int bg_queue_onlytowns;
+	int bg_reserved_char_id;
+	int woe_reserved_char_id;
+	int bg_can_trade;
+	int bg_double_login;
+	int bg_extended_check_equip;
+	int bg_queue_confirmation;
+	int bg_queue_interface;
+	int bg_remove_buffs;
+	int bg_buffs_on_leave;
+	int bg_balance_teams;
+	int bg_monsters_skillimmune;

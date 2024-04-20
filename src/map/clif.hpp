@@ -232,6 +232,7 @@ enum send_target : uint8_t {
 	BG_AREA_WOS,
 
 	CLAN,				// Clan System
+	BG_LISTEN,
 };
 
 enum broadcast_flags : uint8_t {
@@ -1252,5 +1253,19 @@ void clif_macro_reporter_select(map_session_data &sd, const std::vector<uint32> 
 void clif_macro_reporter_status(map_session_data &sd, e_macro_report_status stype);
 
 void clif_dynamicnpc_result( map_session_data& sd, e_dynamicnpc_result result );
+
+
+// Extended Battleground [Easycore]
+void clif_bg_belonginfo(map_session_data *sd);
+int clif_visual_guild_id(struct block_list *bl);
+int clif_visual_emblem_id(struct block_list *bl);
+void clif_bg_emblem(map_session_data *sd, struct guild *g);
+void clif_bg_memberlist(map_session_data *sd);
+void clif_bg_leave_single(map_session_data *sd, const char *name, const char *mes);
+void clif_bg_expulsion_single(map_session_data *sd, const char *name, const char *mes);
+void clif_bg_updatescore_team(struct battleground_data *bg);
+void clif_bg_leave_single(map_session_data *sd, const char *name, const char *mes);
+void clif_bg_basicinfo(map_session_data& sd);
+void clif_rank_info(map_session_data *sd, int points, int total, e_rank ranktype);
 
 #endif /* CLIF_HPP */

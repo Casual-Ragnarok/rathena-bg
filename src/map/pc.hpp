@@ -453,6 +453,12 @@ public:
 		bool roulette_open;
 		t_itemid item_reform;
 		uint64 item_enchant_index;
+
+		// Extended Battleground [Easycore]
+		unsigned bg_afk : 1;
+		unsigned int bg_listen : 1;
+		int check_equip_skill;
+		unsigned int bmaster_flag : 1; // Extended Battleground [Easycore]
 	} state;
 	struct {
 		unsigned char no_weapon_damage, no_magic_damage, no_misc_damage;
@@ -1652,6 +1658,8 @@ bool pc_set_hate_mob(map_session_data *sd, int pos, struct block_list *bl);
 extern struct fame_list smith_fame_list[MAX_FAME_LIST];
 extern struct fame_list chemist_fame_list[MAX_FAME_LIST];
 extern struct fame_list taekwon_fame_list[MAX_FAME_LIST];
+extern struct fame_list bg_fame_list[MAX_FAME_LIST];
+extern struct fame_list woe_fame_list[MAX_FAME_LIST];
 
 void pc_readdb(void);
 void do_init_pc(void);
@@ -1742,6 +1750,15 @@ void pc_macro_detector_disconnect(map_session_data &sd);
 // Macro Reporter
 void pc_macro_reporter_area_select(map_session_data &sd, const int16 x, const int16 y, const int8 radius);
 void pc_macro_reporter_process(map_session_data &sd, int32 reporter_account_id = -1);
+
+// Extended Battleground [Easycore]
+int pc_update_last_action(map_session_data *sd);
+void pc_addbgpoints(map_session_data *sd,int count);
+void pc_addwoepoints(map_session_data *sd,int count);
+void pc_battle_stats(map_session_data *sd, map_session_data *tsd, int flag);
+void pc_rank_reset(int type);
+void pc_record_damage(struct block_list *src, struct block_list *target, int damage);
+void pc_record_mobkills(map_session_data *sd, struct mob_data *md);
 
 #ifdef MAP_GENERATOR
 void pc_reputation_generate();
